@@ -1,0 +1,26 @@
+{
+  "name": "web-dev-final-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.2",
+    "cors": "^2.8.5",
+    "crypto": "^1.0.1",
+    "express": "^4.17.3",
+    "mongodb": "^4.5.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgeabdulaziz/web-dev-final-project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/georgeabdulaziz/web-dev-final-project/issues"
+  },
+  "homepage": "https://github.com/georgeabdulaziz/web-dev-final-project#readme",
+  "description": ""
+}

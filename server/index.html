@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <title>Document</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.js'></script>
+    <link href='https://api.mapbox.com/mapbox.js/v3.3.1/mapbox.css' rel='stylesheet' />
+</head>
+<body>
+    <div id="main">
+    </div>
+    <div id="landing" style="display:none;">
+            <h4>Sign in now to access the map</h4>
+            
+            <input class="inputForm" id='inputUser' type='text' placeholder='username' />
+            
+            <input class="inputForm" id='inputPass' type='password' pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}" placeholder='password' />
+
+            <input class="inputForm hidden" id='inputPass2' type='password' pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}"
+                placeholder='confirm password' />
+
+            <button id="formButton" class="formButton" onclick='loadTheMap()' type='button'>Login</button>
+            <button id="formButton1" class="formButton" onclick='signUp()' type='button'>Sign up</button>
+            <button id="formButton2" class="formButton hidden" onclick='finsihSignUp()' type='button'>Login as new user</button>
+            
+            <div id="message">
+                <h3>Password must contain the following:</h3>
+                <p id="letter" class="invalid">A <b>lowercase</b> letter</p>
+                <p id="capital" class="invalid">A <b>capital (uppercase)</b> letter</p>
+                <p id="number" class="invalid">A <b>number</b></p>
+                <p id="length" class="invalid">Minimum <b>6 characters</b></p>
+            </div>
+            <p id="tryAgain" class="invalid" style="display:none;"><b>Wrong username or password</b></p>
+            <p id="passNotMatch" class="invalid" style="display:none;"><b>Passwords do not match</b></p>
+            <p id="passwordWrong" class="invalid" style="display:none;"><b>Password is incomplete</b></p>
+            <p id="success" class="valid" style="display:none;"><b>Sucess</b></p>
+            <p id="error" class="invalid" style="display:none;"><b>Server Error</b></p>
+            
+  
+    </div>
+
+    <script>
+        var logged = false;
+
+        var sessionIpAddresses = []; //to be assined to the used history later
+
+        //I needed to define the map here, otherwise the api wont work
+        var map = null;
+
+        function getLocation(){
+            console.log("u");
+            const ip = document.getElementById("ip").value;
+            console.log(ip);
+       
+            $.getJSON(`https://ipfind.co/?ip=${ip}&auth=9dd858f3-0e5b-4cd9-9bdd-2b67261e8346`, function(result){
+	            console.log('res', result);
+                //console.log(result.latitude);
+                map.setView([result.latitude, result.longitude], 9);
+            }).then(()=>{
+                   //addIp(ip);
+                   sessionIpAddresses.push(ip);
+            });
+
+        };
+
+        //we loading html elements, JQuery didn't recognize these elements as part of the DOM tree
+        //I had to make the onclick method call a functio here and not wait for JQuery to sense the click
+        function changeStyle(command){
+            map.addLayer(L.mapbox.styleLayer(command));
+        }
+        function loadTheMap(){
+            const username = $('#inputUser').val();
+            const password = $('#inputPass').val();
+            $.get("users.json", (data)=>{
+                if((data.users.filter(obj => obj.username === username && obj.password === password).length)){
+                    logged = true;
+                    localStorage.setItem("username",username);
+                    localStorage.setItem("password",password);
+                    checkLogged();
+                    console.log("exist");
+                    document.getElementById("tryAgain").style.display = "none";
+                }
+                else{
+                    console.log("not exist");
+                    //$("#main").append("<p>You are not a member</P>");
+                    document.getElementById("tryAgain").style.display = "block";
+                }
+            })
+   
+        }
+
+        function signUp(){
+            console.log("okay");
+            document.getElementById("inputPass2").style.display = "block";
+            document.getElementById("formButton2").style.display = "block";
+        }
+
+        var letterCheck = false;
+        var capitalCheck = false;
+        var numberCheck = false;
+        var lengthCheck = false;
+
+
+        function finsihSignUp(){
+            const username = $('#inputUser').val();
+            const password = $('#inputPass').val();
+            const password2 = $('#inputPass2').val();
+            if(password==password2){
+                for(let i = 0 ; i < checkArray.length; i++){
+                    if(!checkArray[i]){
+                        document.getElementById("passwordWrong").style.display = "block";
+                        return;
+                    }
+                }
+                document.getElementById("passNotMatch").style.display = "none";
+                document.getElementById("passwordWrong").style.display = "none";
+                localStorage.setItem("username", username);
+                localStorage.setItem("password", password);
+                addUser(username, password);
+                //window.location.reload();
+
+            }else{
+                document.getElementById("passwordWrong").style.display = "none";
+                 document.getElementById("passNotMatch").style.display = "block";
+                return;
+            }
+        }
+        
+        function signOut(){
+            console.log(sessionIpAddresses);
+            localStorage.clear();
+            window.location.reload();
+        }
+
+        function loginUsingLocalStorage(){
+            const username = localStorage.getItem("username");
+            const password = localStorage.getItem("password");
+            $.get("users.json", (data)=>{
+                if((data.users.filter(obj => obj.username === username && obj.password === password).length)){
+                    logged = true;
+                    checkLogged();
+                    console.log("exist");
+                }
+                else{
+                    signOut();
+                    console.log("not exist");
+                    $("#main").append("<p>You are not a member</P>");
+                }
+            })
+   
+        }
+
+        window.onload = ()=>{ 
+            if(localStorage.getItem("username")!=null && localStorage.getItem("username").length>0){
+                loginUsingLocalStorage();
+            }
+            else{
+                checkLogged();
+                
+            }
+        }
+
+        
+    function addUser(username, password) {
+        let data = {
+            "username": username,
+            "password": password,
+        };
+        console.log(data);
+        $.post("http://localhost:3000/addUser", data).then(()=>{
+            document.getElementById("success").style.display = "block";
+            document.getElementById("error").style.display = "none";
+        }).fail(()=>{
+            document.getElementById("success").style.display = "none";
+            document.getElementById("error").style.display = "block";
+        });
+    }
+
+    function addIp(ip) {
+        //var x = document.getElementById("ipButton");
+        //prevent(x); //if you use it it stops the post requst
+        //$("#")
+         let data = {
+             "ipAddress": ip,
+         };
+         console.log(data);
+         $.post("http://localhost:3000/addIp", data).then(() => {
+             document.getElementById("success").style.display = "block";
+             document.getElementById("error").style.display = "none";
+         }).fail(() => {
+             document.getElementById("success").style.display = "none";
+             document.getElementById("error").style.display = "block";
+         });
+     }
+
+    function prevent(event){
+        event.preventDefault();
+    }
+
+    var checkLogged = ()=>{
+        
+        //$.get("users.json", (data)=>{
+            if(!logged){
+                //$.get("landing.txt", (data)=>{$("#main").append(data)});
+                //$("landing").style
+                document.getElementById("landing").style.display = "block";
+            }else{
+                document.getElementById("landing").style.display = "none";
+                $("#main").empty();
+                // $.get("map.txt", (data)=>{
+                    
+                // })
+                $("body").append('<div id="map"></div>');
+                $.get("map.txt", (data)=>{$("#main").append(data)});
+                
+                //document.getElementById("usernameText").innerHTML = "sdl";
+                
+                L.mapbox.accessToken = 'pk.eyJ1IjoiZ2VvcmdlYWJkdWxheml6IiwiYSI6ImNsMGhsZWFnZTAzMmEzYm1vZ3B5OHI3a2wifQ.WJk0CiEpVlCnk5-UcfddXw';
+                map = L.mapbox.map('map').setView([43.6576, -79.3798], 9).addLayer(L.mapbox.styleLayer('mapbox://styles/mapbox/streets-v11'));
+            } 
+            
+            //console.log(data.users);
+        //})
+    }
+
+        var inputUser = document.getElementById("inputUser");
+        var myInput = document.getElementById("inputPass");
+        var letter = document.getElementById("letter");
+        var capital = document.getElementById("capital");
+        var number = document.getElementById("number");
+        var length = document.getElementById("length");
+
+        // When the user clicks on the password field, show the message box
+        myInput.onfocus = function() {
+            document.getElementById("tryAgain").style.display = "none";
+            document.getElementById("message").style.display = "block";
+            document.getElementById("passNotMatch").style.display = "none";
+        }
+
+        // When the user clicks outside of the password field, hide the message box
+        myInput.onblur = function() {
+            document.getElementById("message").style.display = "none";
+        }
+
+        const cases = [/[a-z]/g, /[A-Z]/g, /[0-9]/g];
+        const objects = [letter, capital, number, length];
+        const checkArray = [letterCheck, capitalCheck, numberCheck, lengthCheck]
+
+        myInput.onkeyup = function() {
+            for(let i=0; i < cases.length; i++){
+                if(myInput.value.match(cases[i])){
+                    convert(objects[i], true);
+                    checkArray[i] = true;
+                }else{
+                    convert(objects[i], false);
+                    checkArray[i] = false;
+                }
+            }
+            if (myInput.value.length >= 6) {
+                convert(length, true);
+                checkArray[3] = true;
+            } else {
+                convert(length, false);
+                checkArray[3] = false;
+            }
+        }
+
+        // inputUser.onfocus = ()=>{ 
+   
+        // }
+
+        inputUser.onchange = ()=>{ //it is better not to use this function as this will allow brute force attacks 
+            $.get("users.json", (data) => {
+                
+                var x = data.users.filter(item => item["username"] == inputUser.value);
+                //console.log(x);
+                if (x.length > 0) {
+                    inputUser.classList.remove("textRed");
+                    inputUser.classList.add("textGreen");
+                } else {
+                    inputUser.classList.remove("textGreen");
+                    inputUser.classList.add("textRed");
+                }
+            });
+        }
+
+
+        function convert(elm, toValid){
+            if(toValid){
+                elm.classList.remove("invalid");
+                elm.classList.add("valid");
+            }else {
+                elm.classList.remove("valid");
+                elm.classList.add("invalid");
+            }
+        }
+
+    </script>
+    
+</body>
+</html>

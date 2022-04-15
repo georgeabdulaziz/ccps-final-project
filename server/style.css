@@ -1,0 +1,76 @@
+
+#map {
+    width: 75%;
+    height: 800px;
+    margin: 20px;
+    float: left;
+    text-align: left;
+    clear: left;
+  }
+
+.styles{
+    text-align: left;
+    float: left
+}
+
+.inputForm, #ip {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid rgb(35, 180, 42);
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin-top: 6px;
+  margin-bottom: 16px;
+}
+
+#ip{
+  width:440px;
+}
+
+#message {
+  display:none;
+  background: #f1f1f1;
+  color: #000;
+  position: relative;
+  padding: 20px;
+  margin-top: 10px;
+}
+
+.valid {
+  color: green;
+}
+
+
+.invalid {
+  color: red;
+}
+
+.formButton{
+  padding:20px 220px;
+  margin:45px;
+  color:rgb(35, 180, 42);
+  background-color: rgb(100, 84, 53);
+}
+
+.mapButton{
+  border-radius: 9px;
+  padding: 20px 20px;
+}
+
+.margin{
+   margin-left: 20px;
+    display: inline;
+}
+
+.hidden{
+  display: none;
+}
+
+.textRed{
+  color:red;
+}
+
+.textGreen{
+  color:rgb(27, 158, 27);
+  
+}
