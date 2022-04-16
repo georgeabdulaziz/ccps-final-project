@@ -1,5 +1,6 @@
 import {useEffect, useLocation, useRef, useState} from 'react'; 
 import { withRouter, useParams, useNavigate } from 'react-router-dom';
+import { User } from '../../providers/user.component';
 import mapboxgl from "mapbox-gl";
 mapboxgl.accessToken = 'pk.eyJ1IjoiZ2VvcmdlYWJkdWxheml6IiwiYSI6ImNsMGhsZWFnZTAzMmEzYm1vZ3B5OHI3a2wifQ.WJk0CiEpVlCnk5-UcfddXw';
 
@@ -20,8 +21,8 @@ function MapFunction(){
     const [zoom, setZoom] = useState(9);
     const mapStyle = 'mapbox://styles/mapbox/streets-v11';
 
-    const { email } = useParams();  
-    const [email1, setEmail1] = useState(email);
+    // const { email } = useParams();  
+    const [email1, setEmail1] = useState("");
 
     const signOutStyle = { color: 'red', float: 'right' };
     const getLocationStyle = { backgroundColor: 'grey', position: 'relative', float: 'none' };
@@ -70,7 +71,13 @@ function MapFunction(){
             <input onChange={()=> {doNothing();}} id="ip" type="text" placeholder="99.238.35.3" value="99.238.35.3" />
             <button style={getLocationStyle} type="button" onClick={() => { doNothing(); }} className="styles mapButton">Get Location</button>
             <button className="styles mapButton" style={signOutStyle} onClick={() => { signOut(); }}>Sign out</button>
-            <p style={welcomeMessegeStyle}>{`Welcome you are logged in as ${email1}`}</p>
+            <User.Consumer>
+                {({email})=>{
+                    return <p style={welcomeMessegeStyle}>{`Welcome you are logged in as ${email}`}</p>
+                }
+                }
+            </User.Consumer>
+
             <div className="styleButtons">
                 <h3 className="styles">Styles</h3>
 

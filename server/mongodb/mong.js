@@ -8,7 +8,7 @@ async function addUser(obj){
         var res = '';
         try{
             await client.connect();
-            client.db("cps530").collection("final").insertOne(obj).then( err =>{
+            client.db("cps530").collection("final-project").insertOne(obj).then( err =>{
                 //console.log("added");
                 client.close();
                 resolve("success");
@@ -34,7 +34,7 @@ async function getUser(email1) {
             //     resolve(ret);
             // });
 
-            client.db("cps530").collection("final").findOne({ email: email1 }, function (err, result) {
+            client.db("cps530").collection("final-project").findOne({ email: email1 }, function (err, result) {
                 if (err) throw err;
                 //console.log(result);
                 const as = result;
@@ -63,4 +63,51 @@ async function getUser(email1) {
 
 }
 
-module.exports = {addUser, getUser};
+
+
+async function getData(keyword) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            await client.connect();
+            client.db("cps530").collection("stored-data").findOne({ keyword: keyword }, function (err, result) {
+                if (err) throw err;
+                const as = result;
+                client.close();
+                console.log("found in db");
+                resolve(as);
+            });
+        }
+        catch (e) {
+            //console.log(e);
+            console.log("error in db");
+            reject(e);
+        }
+
+    });
+
+}
+
+
+
+async function addData(obj) {
+    return new Promise(async (resolve, reject) => {
+        //console.log(obj);
+        var res = '';
+        try {
+            await client.connect();
+            client.db("cps530").collection("stored-data").insertOne(obj).then(err => {
+                //console.log("added");
+                client.close();
+                resolve("success");
+            });
+        }
+        catch (e) {
+            //console.log(e);
+            reject(e);
+        }
+    });
+
+}
+
+
+module.exports = {addUser, getUser, getData, addData};

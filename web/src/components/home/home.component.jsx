@@ -3,7 +3,9 @@ import { withRouter } from "../../util/withRouter/withRouter.component";
 
 //var navigate = useNavigate();
 
-
+import UserState from "../../providers/user.component";
+import { UserConsumer } from "../../providers/user.component";
+import { User, UserModify } from "../../providers/user.component";
 
 const initialState = {
     logged : false,
@@ -28,7 +30,7 @@ class Home extends React.Component {
         this.state = initialState;
     }
 
-    login(){
+    login(setEmail, setLogged){
         const email = this.state.email;
         const password = this.state.password;
         fetch(`/checkPassword`,
@@ -52,6 +54,8 @@ class Home extends React.Component {
                 //this.setState(initialState);
                 var newState = { ...this.state };
                 newState["logged"] = true;
+                setLogged(true);
+                setEmail(email);
                 this.setState(newState);
             }
             else{
@@ -70,42 +74,6 @@ class Home extends React.Component {
             this.setState(newState);
         });
     }
-
-    // login(){
-    //     const email = this.state.email;
-    //     const password = this.state.password;
-    //     fetch(`/getUser?email=${email}`).then(res => res.json()).then(result => {
-    //         if(result){
-    //             if (result.password === password){
-    //                 localStorage.setItem("email", this.state.rememberMe ? email : '');
-    //                 localStorage.setItem("password", this.state.rememberMe ? password : '');
-    //                 //this.setState(initialState);
-    //                 var newState = { ...this.state };
-    //                 newState["logged"] = true;
-    //                 this.setState(newState);
-    //             }else{
-    //                 var newState = { ...this.state };
-    //                 newState["message"] = "Wrong Password";
-    //                 this.setState(newState);
-    //             }
-
-    //         }
-    //         else{
-    //             //password is wrong
-    //             var newState = { ...this.state };
-    //             newState["message"] = "Email is not registered";
-    //             this.setState(newState);
-    //         }
-
-    //     })
-    //     .catch((err)=>{
-    //         //email not registered
-    //         //console.log(err);
-    //         var newState = { ...this.state };
-    //         newState["message"] = "Email is not registered";
-    //         this.setState(newState);
-    //     });
-    // }
 
     signUp() {
 
@@ -173,7 +141,7 @@ class Home extends React.Component {
         var newState = { ...this.state };
         const savedEmail = localStorage.getItem("email") ? localStorage.getItem("email") : "";
         const savedPassword = localStorage.getItem("password") ? localStorage.getItem("password") : "";
-        console.log(savedEmail, savedPassword);
+        //console.log(savedEmail, savedPassword);
         newState["email"] = savedEmail;
         newState["password"] = savedPassword;
         this.setState(newState);
@@ -221,57 +189,72 @@ class Home extends React.Component {
                 newState["condition"]["passwordMatch"] = false;
             }
         }
-
         this.setState(newState);
     }
 
+    //it is necessary for the UserConsumer to return something
+    //later, the authentication must be done in a different area, globally.
     render(){
         return(
-          <>
-                {/*note: navigation here is using a custome made utility functio to be able to use react
-                router dom version 6 and the navigate is devined in the withRouter function*/}
-                {this.state.logged ? 
-                    < button onClick={() => { this.state.logged ? this.props.navigate(`/map/${this.state.email}`) : console.log("please log in") }}>Go to Map</button>
-                    :
-                    <div>
-                        <h4 style={{ marginLeft: '30px' }} >Sign in now to access the map</ h4>
-                        <label>
-                            <input name="rememberMe" checked={this.state.rememberMe}  onChange={this.handleChange} type="checkbox" style={   {marginLeft: '30px'}}/> Remember me
-                        </label>
-                        <br></br>
-                        <input onChange={this.handleChange} className="inputForm" value={this.state.email} name='email' type='email' placeholder='email' />
-                    
-                        <input onChange={this.handleChange} className="inputForm" name='password' type='password' pattern="(?=.*\d)(?=.*[a-z])(?=.* [A-Z]).{6,}" placeholder='password' value={this.state.password} />
-                        {this.state.signUpRequested ?
-                            <>
-                                <input onChange={this.handleChange} className="inputForm" name='passwordConfirm' type='password' pattern="(?=.*\d)(?=.*[a-z])(?=.* [A-Z]).{6,}" placeholder='confirm password' value={this.state.passwordConfirm} / >
-                                <button id="formButton1" className="formButton" onClick={() =>{this.signUp()}} type='button'>Sign up</button>
-                                <div id="message">
-                                    <h3>Password must contain the following:</h3>
-                                    <p id="letter" className={this.state.condition.lowercase? "valid" : "invalid"}>A <b>lowercase</b>   letter</p>
-                                    <p id="capital" className={this.state.condition.capital? "valid" : "invalid"}>A <b>capital (uppercase) </b> letter</p>
-                                    <p id="number" className={this.state.condition.number? "valid" : "invalid"}>A <b>number</b></p>
-                                    <p id="length" className={this.state.condition.length? "valid" : "invalid"}>Minimum <b>8 characters</b></p>
-                                    <p id="length" className={this.state.condition.passwordMatch? "valid" : "invalid"}>Password Match</p> 
-                                    
-                                </div>
-                            </>
-                            :
-                            <>
-                                <button id="formButton" className="formButton" onClick={()  => { this.login() }} type='button'>Login</button>
-                                <button id="formButton1" className="formButton" onClick={   () => { this.goToSignUp() }} type='button'>Go to Sign Up</ button>
-                            </>
-    
-                        }
+            <>
+                <User.Consumer>
+                    {({setLoggedInGlobal, loggedIn, setEmailGlobal, email}) => {
+                        if (loggedIn){
+                             return (
+                                 <> 
+                                    <p>You logged In</p>
+                                    <p>{`Welcome you are logged in as ${email}`}</p>
+                                    < button onClick={() => {this.props.navigate(`/dictionary`)}}>Go to Dictionary</button>
+                                    <button onClick={()=> setLoggedInGlobal(false)}>logout</button>
+                                 </>
+                                  
+                             )
+                             
+                        } else{
+                            return (
+                                <div>
+                                    {/* <button onClick={() => setLoggedInGlobal(false)}>out</button> */}
+                                    <h4 style={{ marginLeft: '30px' }} >Sign in now to access the map</ h4>
+                                    <label>
+                                        <input name="rememberMe" checked={this.state.rememberMe} onChange={this.handleChange} type="checkbox" style={{ marginLeft: '30px' }} /> Remember me
+                                    </label>
+                                    <br></br>
+                                    <input onChange={this.handleChange} className="inputForm" value={this.state.email} name='email' type='email' placeholder='email' />
 
-                        <h2 style={{marginLeft: '30px', color: 'red'}} >{this.state.message}</h2>
-                        
-                    
-                    </div>
-                }
-            
-          </>  
-        );
+                                    <input onChange={this.handleChange} className="inputForm" name='password' type='password' pattern="(?=.*\d)(?=.*[a-z])(?=.* [A-Z]).{6,}" placeholder='password' value={this.state.password} />
+                                    {this.state.signUpRequested ?
+                                        <>
+                                            <input onChange={this.handleChange} className="inputForm" name='passwordConfirm' type='password' pattern="(?=.*\d)(?=.*[a-z])(?=.* [A-Z]).{6,}" placeholder='confirm password' value={this.state.passwordConfirm} />
+                                            <button id="formButton1" className="formButton" onClick={() => { this.signUp() }} type='button'>Sign up</button>
+                                            <div id="message">
+                                                <h3>Password must contain the following:</h3>
+                                                <p id="letter" className={this.state.condition.lowercase ? "valid" : "invalid"}>A <b>lowercase</b>   letter</p>
+                                                <p id="capital" className={this.state.condition.capital ? "valid" : "invalid"}>A <b>capital (uppercase) </b> letter</p>
+                                                <p id="number" className={this.state.condition.number ? "valid" : "invalid"}>A <b>number</b></p>
+                                                <p id="length" className={this.state.condition.length ? "valid" : "invalid"}>Minimum <b>8 characters</b></p>
+                                                <p id="length" className={this.state.condition.passwordMatch ? "valid" : "invalid"}>Password Match</p>
+
+                                            </div>
+                                        </>
+                                        :
+                                        <>
+                                            <button id="formButton" className="formButton" onClick={() => { this.login(setEmailGlobal, setLoggedInGlobal) }} type='button'>Login</button>
+                                            <button id="formButton1" className="formButton" onClick={() => { this.goToSignUp() }} type='button'>Go to Sign Up</ button>
+                                        </>
+
+                                    }
+
+                                    <h2 style={{ marginLeft: '30px', color: 'red' }} >{this.state.message}</h2>
+
+
+                                </div>
+                            )
+                        } 
+                    }}
+                </User.Consumer> 
+            </>
+        )
     }
 }
+
 export default withRouter(Home);
